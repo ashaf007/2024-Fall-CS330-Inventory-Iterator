@@ -1,8 +1,5 @@
 package items;
 
-import java.util.List;
-import java.util.ArrayList;
-
 import java.util.Iterator;
 import java.util.Objects;
 
@@ -36,7 +33,7 @@ public class Inventory implements Iterable<ItemStack>, Cloneable
     /**
      * Individual item slots--each ItemStack occupies one slot.
      */
-    private List<ItemStack> slots;
+    private RestrictedLinkedList<ItemStack> slots;
 
     /**
      * Total number of distinct Item types that can be stored.
@@ -58,7 +55,7 @@ public class Inventory implements Iterable<ItemStack>, Cloneable
      */
     public Inventory(int desiredCapacity)
     {
-        this.slots    = new ArrayList<>();
+        this.slots    = new RestrictedLinkedList<>();
         this.capacity = desiredCapacity;
     }
 
@@ -94,8 +91,7 @@ public class Inventory implements Iterable<ItemStack>, Cloneable
      */
     public boolean isFull()
     {
-        // Replace the next line
-        return false;
+        return this.utilizedSlots() >= this.capacity;
     }
 
     /**
@@ -105,7 +101,7 @@ public class Inventory implements Iterable<ItemStack>, Cloneable
      */
     public boolean isEmpty()
     {
-        return this.slots.size() == 0;
+        return this.slots.isEmpty();
     }
 
     /**
@@ -118,19 +114,22 @@ public class Inventory implements Iterable<ItemStack>, Cloneable
      */
     public ItemStack findMatchingItemStack(ItemStack key)
     {
-        // Adapt the logic from Assignment 1
-
+        for (ItemStack stack : slots) {
+            if (stack.equals(key)) {
+                return stack;
+            }
+        }
         return null;
     }
 
     /**
-     * This is the standard Linked List append operation from Review 01
+     * This is the standard Linked List append operation.
      *
      * @param toAdd data that we want to store in a Node and add to the list
      */
     public void addItemStackNoCheck(ItemStack toAdd)
     {
-        // Add the missing (one) line by using `this.slots.add(????)`
+        this.slots.add(toAdd);
     }
 
     /**
@@ -149,12 +148,11 @@ public class Inventory implements Iterable<ItemStack>, Cloneable
             // If the Item is stackable, add it to the ItemStack
             if (match.permitsStacking()) {
                 mergeStacks(match, stack);
-
                 return true;
             }
         }
 
-        if (this.slots.size() < capacity) {
+        if (!this.isFull()) {
             this.addItemStackNoCheck(stack);
             return true;
         }
@@ -167,13 +165,15 @@ public class Inventory implements Iterable<ItemStack>, Cloneable
     {
         Inventory copy = new Inventory(this.totalSlots());
 
-        // Add the missing copy logic (loop)
+        for (ItemStack stack : this.slots) {
+            copy.addItemStackNoCheck(stack.clone());
+        }
 
         return copy;
     }
 
     /**
-     * Two Invetories are considered equal if they:
+     * Two Inventories are considered equal if they:
      *
      *   1. Have the same capacity
      *   2. Have the same ItemStacks in the same order
@@ -214,7 +214,9 @@ public class Inventory implements Iterable<ItemStack>, Cloneable
         StringBuilder strBld = new StringBuilder();
         strBld.append(summaryLine);
 
-        // Add the missing loop
+        for (ItemStack stack : this.slots) {
+            strBld.append(stack.toString()).append(System.lineSeparator());
+        }
 
         return strBld.toString();
     }
